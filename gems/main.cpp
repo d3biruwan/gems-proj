@@ -7,7 +7,10 @@ int main()
     game_board board=game_board(move(window));
     /*sf::RectangleShape shape(sf::Vector2f(100,100));
     shape.setFillColor(sf::Color::Green);*/
-    board.board_update();
+    while (board.board_update()) {
+        continue;
+    }
+    
     while (board.window->isOpen())
     {
         sf::Event event;
