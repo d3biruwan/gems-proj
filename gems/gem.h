@@ -9,6 +9,7 @@
 #define board_size 8
 #define animation_speed 0.25f
 #define sprite_size 48
+#define max_bonus 2
 
 using namespace std;
 using namespace sf;

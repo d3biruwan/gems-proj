@@ -1,6 +1,7 @@
 #pragma once
 
 #include"gem.h"
+#include"bonus.h"
 
 class game_board {
 public:
@@ -14,6 +15,9 @@ public:
 
     RectangleShape invisibility_cloak=RectangleShape(Vector2f(600.f, 100.f));
 
+    vector<unique_ptr<bomb>> bombs;
+    vector<unique_ptr<brush>> brushes;
+
 
     void draw();
     bool combinations_processing();
@@ -22,7 +26,13 @@ public:
     int find_pressed_gem(const Vector2i&);
     void mouse_processing();
     bool rebuild();
+    void add_bonus(int);
+    void bonus_animation();
+    void draw_bonus();
+    void resolve_bonuses();
 private:
+    void generate_bombs(int);
+    void generate_brush(int);
     bool row_check();
     bool column_check();
     bool destroy_check();

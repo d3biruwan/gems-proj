@@ -93,12 +93,17 @@ bool game_board::destroy_check() {
 }
 
 void game_board::destroy_gems() {
+	int bonus_count=0;
 	for (int l = 0; l < board_size; l++) {
 		int destroyed_count = 0;
 		for (int i = 0; i < size; i += board_size) {
 			if (gems_field[i + l]->to_destroy == false) {
 				continue;
 			}
+			/*int bonus_spawn = rand() % 10;
+			if ((bonus_spawn > 6) && (bonus_count < max_bonus)) {
+				add_bonus(i + l);
+			}*/
 			gems_field[i + l]->to_destroy = false;
 			for (int k = i + l; k > destroyed_count * board_size + l; k += -board_size) {
 				shared_ptr<gem> tmp = gems_field[k - board_size];
@@ -122,7 +127,6 @@ void game_board::destroy_gems() {
 }
 
 void game_board::destroy_animation() {
-
 	vector<int> still_columns;
 	int counter = board_size;
 	while (counter > 0) {
@@ -236,6 +240,7 @@ bool game_board::combinations_processing() {
 	}
 	destroy_gems();
 	destroy_animation();
+	//reslove_bonuses();
 	return again;
 }
 
@@ -349,3 +354,110 @@ void game_board::mouse_processing() {
 	gems_field[pos1]->set_scale(0.8f);
 	change_gems(pos1, pos2);
 }
+
+void game_board::generate_bombs(int pos) {
+	int pos1=-1, pos2=-1, pos3=-1, pos4=-1;
+	vector <int> ind(4);
+	while (true) {
+		ind[0] = rand() % (size * size);
+		ind[1] = rand() % (size * size);
+		ind[2] = rand() % (size * size);
+		ind[3] = rand() % (size * size);
+
+		if ((ind[0] != pos)&&(ind[0]!=ind[1])&&(ind[0]!=ind[2])&&(ind[0]!=ind[3])&&(ind[1]!=pos)&&(ind[1]!=ind[2])&&(ind[1]!=ind[3])&&(ind[2]!=ind[3])&&(ind[2]!=pos)&&(ind[3]!=pos)) {
+			break;
+		}
+	}
+	for (int i = 0; i < 4; i++) {
+		float vx, vy;
+		unique_ptr<bomb> new_bomb = make_unique<bomb>(pos, ind[i], i, *this);
+		if (gems_field[pos]->get_position().x < gems_field[ind[i]]->get_position().x) {
+			vx = 2 * animation_speed;
+		}
+		else {
+			vx = -2 * animation_speed;
+		}
+		if (gems_field[pos]->get_position().y < gems_field[ind[i]]->get_position().y) {
+			vy = 2 * animation_speed;
+		}
+		else {
+			vy = -2 * animation_speed;
+		}
+		new_bomb->set_velocity(vx,vy);
+		bombs.push_back(move(new_bomb));
+	}
+}
+
+void game_board::generate_brush(int pos) {
+	float vx, vy;
+	int index;
+	while (true) {
+		index = rand() % (size * size);
+		if (index != pos) {
+			break;
+		}
+	}
+	unique_ptr<brush> new_brush = make_unique<brush>(pos, index, 0, gems_field[pos]->get_fruit(), *this);
+	if (gems_field[pos]->get_position().x < gems_field[index]->get_position().x) {
+		vx = 2 * animation_speed;
+	}
+	else {
+		vx = -2 * animation_speed;
+	}
+	if (gems_field[pos]->get_position().y < gems_field[index]->get_position().y) {
+		vy = 2 * animation_speed;
+	}
+	else {
+		vy = -2 * animation_speed;
+	}
+	new_brush->set_velocity(vx, vy);
+	brushes.push_back(move(new_brush));
+}
+
+void game_board::add_bonus(int pos) {
+	int r = rand() % 2;
+	if (r == 1) {
+		generate_bombs(pos);
+	}
+	if (r == 0) {
+		generate_brush(pos);
+	}
+}
+
+void game_board::draw_bonus() {
+	for (auto& elem : bombs) {
+		elem->draw();
+	}
+	for (auto& elem : brushes) {
+		elem->draw();
+	}
+}
+
+void game_board::bonus_animation() {
+	int counter = bombs.size() + brushes.size();
+	while (counter>0) {
+		window->clear();
+		draw();
+		for (auto& elem : bombs) {
+			elem->move();
+			if (elem->get_position() == elem->get_destination()) {
+				counter--;
+				elem->set_velocity(0.f, 0.f);
+			}
+		}
+		for(auto & elem : brushes) {
+			elem->move();
+			if (elem->get_position() == elem->get_destination()) {
+				counter--;
+				elem->set_velocity(0.f, 0.f);
+			}
+		}
+		draw_bonus();
+		window->display();
+	}
+}
+
+void game_board::resolve_bonuses() {
+	
+}
+
