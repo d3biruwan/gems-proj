@@ -17,7 +17,11 @@ public:
 
     void draw();
     bool combinations_processing();
-    bool board_update();
+    bool board_update(bool&);
+    void change_gems(int, int);
+    int find_pressed_gem(const Vector2i&);
+    void mouse_processing();
+    bool rebuild();
 private:
     bool row_check();
     bool column_check();
@@ -27,6 +31,5 @@ private:
     bool is_playable();
     bool find_in_rows();
     bool find_in_columns();
-    bool rebuild();
-
+    void change_gems_process(int pos1, int pos2);
 };

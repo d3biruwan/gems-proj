@@ -8,6 +8,7 @@
 
 #define board_size 8
 #define animation_speed 0.25f
+#define sprite_size 48
 
 using namespace std;
 using namespace sf;
@@ -34,11 +35,13 @@ public:
     bool is_on_board();
     
     void move();
+    void move_x();
    // void set_position(const Vector2f&);
     void set_new_position(const Vector2f&);
     void set_position(const Vector2f&);
     void set_velocity(const float);
     void set_fruit(const Fruit&);
+    void set_scale(const float);
 
     bool to_destroy = false;
 

@@ -94,9 +94,18 @@ void gem::set_fruit(const Fruit& fr) {
     }
 }
 
+void gem::set_scale(const float scale) {
+    sprite.scale(scale, scale);
+}
+
 void gem::move() {
     sprite.move(0, get_velocity());
     y_pos = sprite.getPosition().y;
+}
+
+void gem::move_x() {
+    sprite.move(get_velocity(), 0);
+    x_pos = sprite.getPosition().x;
 }
 
 bool gem::is_on_board() {

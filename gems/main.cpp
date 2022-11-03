@@ -7,7 +7,12 @@ int main()
     game_board board=game_board(move(window));
     /*sf::RectangleShape shape(sf::Vector2f(100,100));
     shape.setFillColor(sf::Color::Green);*/
-    while (board.board_update()) {
+    bool n = true;
+    while (board.board_update(n)) {
+        continue;
+    }
+    board.rebuild();
+    while (board.board_update(n)) {
         continue;
     }
     
@@ -18,6 +23,9 @@ int main()
         {
             if (event.type == sf::Event::Closed)
                 board.window->close();
+        }
+        if (Mouse::isButtonPressed(Mouse::Left)) {
+            board.mouse_processing();
         }
 
         board.window->clear();

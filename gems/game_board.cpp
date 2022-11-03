@@ -224,22 +224,128 @@ bool game_board::rebuild() {
 bool game_board::combinations_processing() {
 	bool again = false;
 	Clock clock;
-	while (clock.getElapsedTime().asSeconds() < 1.5) {
+	while (clock.getElapsedTime().asSeconds() < 0.5) {
 		window->clear();
 		draw();
 		// window.draw(shape);
 		window->display();
 	}
 	again = destroy_check();
+	if (again == false) {
+		return false;
+	}
 	destroy_gems();
 	destroy_animation();
 	return again;
 }
 
-bool game_board::board_update() {
+bool game_board::board_update(bool& was_successful) {
+	int count = 0;
 	while (combinations_processing()) {
-		continue;
+		count++;
 	}
+	if (count == 0) {
+		was_successful = false;
+		return false;
+	}
+	was_successful = true;
 	return rebuild();
 }
 
+void game_board::change_gems_process(int pos1, int pos2) {
+	gems_field[pos1]->set_new_position(gems_field[pos2]->get_position());
+	gems_field[pos2]->set_new_position(gems_field[pos1]->get_position());
+	auto tmp = gems_field[pos1];
+	gems_field[pos1] = gems_field[pos2];
+	gems_field[pos2] = tmp;
+	int flag = 1;
+	if (pos1 < pos2) {
+		gems_field[pos1]->set_velocity(-animation_speed);
+		gems_field[pos2]->set_velocity(animation_speed);
+	}
+	else {
+		gems_field[pos2]->set_velocity(-animation_speed);
+		gems_field[pos1]->set_velocity(animation_speed);
+	}
+	
+	while (flag) {
+		if (gems_field[pos1]->get_position() == gems_field[pos1]->get_new_position()) {
+			gems_field[pos1]->set_velocity(0.f);
+			gems_field[pos2]->set_velocity(0.f);
+			flag = 0;
+		}
+
+		if (fabs(pos2 - pos1) > 1) {
+			gems_field[pos1]->move();
+			gems_field[pos2]->move();
+		}
+		else {
+			gems_field[pos1]->move_x();
+			gems_field[pos2]->move_x();
+		}
+
+		window->clear();
+		draw();
+		window->display();
+	}
+}
+
+void game_board::change_gems(int pos1, int pos2) {
+	int counter = 0;
+	bool successful_change = false;
+	change_gems_process(pos1, pos2);
+	while (board_update(successful_change)) {
+		counter++;
+	}
+	if ((counter != 0)||(successful_change==true)) {
+		return;
+	}
+	change_gems_process(pos1, pos2);
+}
+
+int game_board::find_pressed_gem(const Vector2i& pos) {
+	for (int i = 0; i < gems_field.size();i++) {
+		auto& element = gems_field[i];
+		if ((element->get_position().x <= pos.x) && (element->get_position().x + sprite_size>=pos.x)) {
+			if ((element->get_position().y <= pos.y) && (element->get_position().y + sprite_size >= pos.y))
+				return i;
+		}
+	}
+	return -1;
+}
+
+void game_board::mouse_processing() {
+	Vector2i localPosition1 = Mouse::getPosition(*window);
+	Vector2i localPosition2;
+
+	int pos1 = find_pressed_gem(localPosition1);
+	int pos2;
+	if (pos1 == -1) {
+		return;
+	}
+	gems_field[pos1]->set_scale(1.25f);
+	Clock clock;
+	while(clock.getElapsedTime().asSeconds()<0.3) {
+		continue;
+	}
+	while (true) {
+		window->clear();
+		draw();
+		window->display();
+		if (Mouse::isButtonPressed(Mouse::Left)) {
+			localPosition2 = Mouse::getPosition(*window);
+			pos2 = find_pressed_gem(localPosition2);
+			if (pos2 == -1) {
+				gems_field[pos1]->set_scale(0.8f);
+				return;
+			}
+			if ((fabs(pos1 - pos2) != 1) && (fabs(pos1 - pos2) != 8)) {
+				gems_field[pos1]->set_scale(0.8f);
+				return;
+			}
+			break;
+		}
+	}
+	gems_field[pos1]->set_scale(0.8f);
+	change_gems(pos1, pos2);
+}
