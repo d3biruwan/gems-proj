@@ -109,7 +109,7 @@ void game_board::destroy_gems() {
                 gems_field[k]->set_new_position(gems_field[k - board_size]->get_new_position());
                 gems_field[k - board_size]->set_new_position(tmp_pos);
 
-                gems_field[k]->set_velocity(animation_speed);
+                gems_field[k]->set_velocity(Vector2f(0.0, animation_speed));
             }
             int x_index = (destroyed_count * board_size + l) % board_size;
             int y_index = (destroyed_count * board_size + l) / board_size;
@@ -119,7 +119,7 @@ void game_board::destroy_gems() {
             gems_field[destroyed_count * board_size + l]->set_new_position(Vector2f(100.f + 48.f * x_index, 100.f + 48.f * y_index));
 
             gems_field[destroyed_count * board_size + l]->set_fruit(Fruit(rand() % 5));
-            gems_field[destroyed_count * board_size + l]->set_velocity(animation_speed);
+            gems_field[destroyed_count * board_size + l]->set_velocity(Vector2f(0.0, animation_speed));
             destroyed_count++;
         }
     }
@@ -135,7 +135,7 @@ void game_board::destroy_animation() {
                 continue;
             }
             for (int i = 0; i < size; i += board_size) {
-                if (gems_field[i + k]->get_velocity() == 0.f) {
+                if ((gems_field[i + k]->get_velocity().x == 0.0) && (gems_field[i + k]->get_velocity().y == 0.0)) {
                     if (i + k < 8) {
                         still_columns.push_back(k);
                         counter--;
@@ -147,7 +147,7 @@ void game_board::destroy_animation() {
                 }
                 gems_field[i + k]->move();
                 if (gems_field[i + k]->get_new_position().y == gems_field[i + k]->get_position().y) {
-                    gems_field[i + k]->set_velocity(0.f);
+                    gems_field[i + k]->set_velocity(Vector2f(0.0, 0.0));
                 }
             }
         }
@@ -158,19 +158,75 @@ void game_board::destroy_animation() {
     }
 }
 
-void game_board::board_update() {
+bool game_board::board_update(float time) {
     Clock clock;
-    while (clock.getElapsedTime().asSeconds() < 1.5) {
+    while (clock.getElapsedTime().asSeconds() < time) {
         window->clear();
         draw();
         // window.draw(shape);
         window->display();
     }
-    bool check = true;
+    bool check = destroy_check();
+    bool res = check;
     while (check == true) {
-        check = destroy_check();
         destroy_gems();
         destroy_animation();
+        check = destroy_check();
+    }
+
+    return res;
+}
+
+
+const vector<int> game_board::get_neighboured_gems(int index) {
+    vector <int> neighbours;
+    if (index - board_size > 0)
+        neighbours.push_back(index - board_size);
+    if (index % board_size - 1 > 0)
+        neighbours.push_back(index - 1);
+    if (index + board_size <= this->size)
+        neighbours.push_back(index + board_size);
+    if (index % board_size + 1 < board_size)
+        neighbours.push_back(index + 1);
+    return neighbours;
+}
+
+void game_board::swap_animation(int i, int k) {
+    Vector2f destination = this->gems_field[i]->get_new_position();
+    while (destination != this->gems_field[i]->get_position()) {
+        this->gems_field[i]->move();
+        this->gems_field[k]->move();
+        window->clear();
+        draw();
+        window->display();
     }
 }
 
+void game_board::swap(int i, int k) {
+    this->gems_field[i].swap(this->gems_field[k]);
+    this->gems_field[i]->set_new_position(this->gems_field[k]->get_position());
+    this->gems_field[k]->set_new_position(this->gems_field[i]->get_position());
+    float velocity = animation_speed / 2;
+    /*if (this->gems_field[i]->get_position().x != this->gems_field[i]->get_new_position().x) {
+        if (this->gems_field[i]->get_position().x < this->gems_field[i]->get_new_position().x) {
+            gems
+        }
+    }*/
+    Vector2f pos1 = this->gems_field[i]->get_position();
+    Vector2f pos2 = this->gems_field[i]->get_new_position();
+    if (pos2.x != pos1.x) {
+        if (pos2.x - pos1.x < 0.0)
+            velocity *= -1;
+        this->gems_field[i]->set_velocity(Vector2f(velocity, 0.0));
+        this->gems_field[k]->set_velocity(Vector2f(-velocity, 0.0));
+    }
+    else {
+        if (pos2.y - pos1.y < 0.0)
+            velocity *= -1;
+        this->gems_field[i]->set_velocity(Vector2f(0.0, velocity));
+        this->gems_field[k]->set_velocity(Vector2f(0.0, -velocity));
+    }
+    swap_animation(i, k);
+    this->gems_field[i]->set_velocity(Vector2f(0.0, 0.0));
+    this->gems_field[k]->set_velocity(Vector2f(0.0, 0.0));
+}

@@ -30,22 +30,24 @@ public:
     const Vector2f get_position();
     const Vector2f get_new_position();
     const Fruit get_fruit();
-    const float get_velocity();
+    const Vector2f get_velocity();
     bool is_on_board();
 
     void move();
     // void set_position(const Vector2f&);
     void set_new_position(const Vector2f&);
     void set_position(const Vector2f&);
-    void set_velocity(const float);
+    void set_velocity(const Vector2f&);
     void set_fruit(const Fruit&);
+    bool contains_point(const Vector2f&);
 
     bool to_destroy = false;
 
     void draw();
-
+    void make_bigger();
+    void make_smaller();
 protected:
-    float velocity = 0.0;
+    Vector2f velocity = Vector2f(0.0, 0.0);
     game_board* board = NULL;
     int arr_pos;
     float x_pos, y_pos;

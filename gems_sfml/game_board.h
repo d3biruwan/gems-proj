@@ -18,8 +18,11 @@ public:
 
 
     void draw();
-    void board_update();
+    bool board_update(float time = 0.f);
+    const vector <int> get_neighboured_gems(int);
+    void swap(int, int);
 private:
+    void swap_animation(int, int);
     bool row_check();
     bool column_check();
     bool destroy_check();

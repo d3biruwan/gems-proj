@@ -45,7 +45,7 @@ const Fruit gem::get_fruit() {
     return fruit;
 }
 
-const float gem::get_velocity() {
+const Vector2f gem::get_velocity() {
     return velocity;
 }
 
@@ -63,7 +63,7 @@ void gem::set_new_position(const Vector2f& new_pos) {
     y_new_pos = new_pos.y;
 }
 
-void gem::set_velocity(const float vel) {
+void gem::set_velocity(const Vector2f& vel) {
     velocity = vel;
 }
 
@@ -95,8 +95,10 @@ void gem::set_fruit(const Fruit& fr) {
 }
 
 void gem::move() {
-    sprite.move(0, get_velocity());
+    
+    sprite.move(get_velocity());
     y_pos = sprite.getPosition().y;
+    x_pos = sprite.getPosition().x;
 }
 
 bool gem::is_on_board() {
@@ -104,4 +106,16 @@ bool gem::is_on_board() {
         return true;
     }
     return false;
+}
+
+bool gem::contains_point(const Vector2f& dot) {
+    return this->sprite.getGlobalBounds().contains(dot);
+}
+
+void gem::make_bigger() {
+    this->sprite.setScale(1.75, 1.75);
+}
+
+void gem::make_smaller() {
+    this->sprite.setScale(1.5, 1.5);
 }
